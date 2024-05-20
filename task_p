@@ -1,0 +1,155 @@
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <vector>
+
+const int kModula = 1'000'000'007;
+
+std::vector<bool> DecToBinary(int nn, int kolco) {
+  std::vector<bool> binary_num;
+
+  while (nn > 0) {
+    binary_num.push_back((nn % 2) != 0);
+    nn = nn / 2;
+  }
+  std::vector<bool> ans(kolco);
+  for (size_t i = 0; i < binary_num.size(); i++) {
+    ans[kolco - 1 - i] = binary_num[i];
+  }
+  return ans;
+}
+
+bool IsTwoSameDigitsInRow(std::vector<bool>& mask) {
+  for (size_t i = 1; i < mask.size(); i++) {
+    if (mask[i] == mask[i - 1]) {
+      // Рассматриваем случай когда два одинаковых символа подряд идут
+      return true;
+    }
+  }
+  return false;
+}
+
+std::vector<bool> InvertedMask(std::vector<bool> mask) {
+  for (size_t i = 0; i < mask.size(); i++) {
+    mask[i] = !mask[i];
+  }
+  return mask;
+};
+
+int TwoDigitsInRow(std::vector<std::vector<char>>& arr,
+                   std::vector<bool>& mask) {
+  // Парсим построчно, тк таблица однозначно задается маской
+  // Хотим чтобы наимаджинированая таблица накладывалась на реальную
+  int nn = arr.size();
+  int mm = arr[0].size();
+
+  std::vector<bool> imask = InvertedMask(mask);
+
+  // Парсю по столбцам слева направо
+  for (int j = 0; j < mm; j++) {
+    std::vector<bool> curmask;
+    if (j % 2 == 0) {
+      curmask = mask;
+    } else {
+      curmask = imask;
+    }
+
+    for (int i = 0; i < nn; i++) {
+      if (arr[i][j] == '+' and !curmask[i]) {
+        return 0;
+      }
+      if (arr[i][j] == '-' and curmask[i]) {
+        return 0;
+      }
+    }
+  }
+  return 1;
+}
+
+void CrossCheck(char aij, bool maski, bool& flagmask) {
+  if (aij == '+' and !maski) {
+    flagmask = false;
+  }
+  if (aij == '-' and maski) {
+    flagmask = false;
+  }
+}
+
+int ChessMask(std::vector<std::vector<char>>& arr, std::vector<bool>& mask) {
+  // Следующая строка это либо маска либо инвертированная
+  // Сначала проверить подходит ли маска вообще на 1 столбце
+  // Если одная из строк то *1
+  // Если обе строки то *2
+  // Если не одной, то ретурн 0, маска не подходит
+
+  int nn = arr.size();
+  int mm = arr[0].size();
+
+  for (int i = 0; i < nn; i++) {
+    if (arr[i][0] == '+' and !mask[i]) {
+      return 0;
+    }
+    if (arr[i][0] == '-' and mask[i]) {
+      return 0;
+    }
+  }
+
+  std::vector<bool> imask = InvertedMask(mask);
+  int minians = 1;
+
+  for (int j = 1; j < mm; j++) {
+    bool flagmask = true;
+    bool flag_imask = true;
+
+    for (int i = 0; i < nn; i++) {
+      // Чекаем обычную маску
+      CrossCheck(arr[i][j], mask[i], flagmask);
+
+      // Чекаем ИНВЕРТИРОВАНУЮ маску
+      CrossCheck(arr[i][j], imask[i], flag_imask);
+    }
+
+    if (!flagmask and !flag_imask) {
+      // Ни одна из масок не подходит
+      return 0;
+    }
+    if (flagmask and flag_imask) {
+      // Подходят обе маски
+      minians = (minians * 2) % kModula;
+    }
+    // Иначе только одна маска подходит *= 1
+  }
+  return minians;
+}
+
+int main() {
+  int nn;
+  int mm;
+
+  std::cin >> nn >> mm;
+
+  std::vector<std::vector<char>> arr(nn, std::vector<char>(mm));
+  for (int i = 0; i < nn; i++) {
+    for (int j = 0; j < mm; j++) {
+      std::cin >> arr[i][j];
+    }
+  }
+
+  int ans = 0;
+  int nsquare = pow(2, nn);
+
+  for (int i = 0; i < nsquare; i++) {
+    std::vector<bool> mask = DecToBinary(i, nn);
+
+    // крч делаем дп по маскам по столбцам
+    // true = '+'; false = '-'
+    if (IsTwoSameDigitsInRow(mask)) {
+      ans = (ans + TwoDigitsInRow(arr, mask)) % kModula;
+    } else {
+      ans = (ans + ChessMask(arr, mask)) % kModula;
+    }
+  }
+
+  std::cout << ans;
+  return 0;
+}
