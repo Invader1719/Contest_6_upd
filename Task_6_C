@@ -1,0 +1,52 @@
+#include <iostream>
+#include <vector>
+const long long kMax = 9223372036854775807;
+
+long long Solve(long long& kk, long long& nn) {
+  std::vector<long long> dp0(kk + 1, 1);
+  std::vector<long long> dp1(kk + 1, 1);
+  for (int cnt = 2; cnt <= kk; ++cnt) {
+    dp0[cnt] = 0;
+    dp1[cnt] = 0;
+  }
+  dp1[1] = 0;
+  long long ttlans = dp1[0] + dp0[0];
+  long long otvet = 1;
+  while (ttlans < nn) {
+    ttlans = 1;
+    // Считаем Сумму чисел сочетаний через
+    // Треугольнмк Паскаля
+    for (long long cnt = 1; cnt <= kk; ++cnt) {
+      if (otvet % 2 == 0) {
+        dp0[cnt] = dp1[cnt] + dp1[cnt - 1];
+        ttlans += dp0[cnt];
+      } else {
+        dp1[cnt] = dp0[cnt] + dp0[cnt - 1];
+        ttlans += dp1[cnt];
+      }
+    }
+    ++otvet;
+  }
+  return otvet;
+}
+
+int main() {
+  std::ios_base::sync_with_stdio(false);
+  std::cin.tie(nullptr);
+  long long nn;
+  long long kk;
+  long long otvet = 1;
+  std::cin >> nn >> kk;
+  if (kk > 0 && nn > 1) {
+    otvet = Solve(kk, nn);
+  }
+  long long flag = kMax;
+  if (nn == 1) {
+    // Значит мы уже знаем n
+    flag = 0;
+  } else if (kk == 0) {
+    // Значит недостижимо
+    flag = -1;
+  }
+  std::cout << std::min(otvet, flag);
+}
