@@ -1,0 +1,50 @@
+#include <iostream>
+#include <vector>
+
+int main() {
+  int nn;
+  int mm;
+  std::cin >> nn >> mm;
+
+  std::vector<int> weights(nn);
+  std::vector<int> values(nn);
+
+  for (int i = 0; i < nn; i++) {
+    std::cin >> weights[i];
+  }
+
+  for (int i = 0; i < nn; i++) {
+    std::cin >> values[i];
+  }
+
+  std::vector<std::vector<int>> dp(nn + 1, std::vector<int>(mm + 1, 0));
+
+  for (int i = 1; i <= nn; i++) {
+    for (int jj = 1; jj <= mm; jj++) {
+      if (weights[i - 1] <= jj) {
+        dp[i][jj] = std::max(dp[i - 1][jj],
+                             dp[i - 1][jj - weights[i - 1]] + values[i - 1]);
+      } else {
+        dp[i][jj] = dp[i - 1][jj];
+      }
+    }
+  }
+
+  int max_value = dp[nn][mm];
+
+  std::vector<int> path;
+  int cnt = mm;
+  for (int i = nn; i > 0 && max_value > 0; i--) {
+    if (max_value != dp[i - 1][cnt]) {
+      path.push_back(i);
+      max_value -= values[i - 1];
+      cnt -= weights[i - 1];
+    }
+  }
+
+  for (int i = path.size() - 1; i >= 0; i--) {
+    std::cout << path[i] << '\n';
+  }
+
+  return 0;
+}
