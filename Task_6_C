@@ -1,0 +1,52 @@
+#include <iostream>
+#include <vector>
+const long long kMax = INT64_MAX;
+
+long long Solve(long long& edges_amount, long long& vertexes_amount) {
+    std::vector<long long> dp0(edges_amount + 1, 1);
+    std::vector<long long> dp1(edges_amount + 1, 1);
+    for (int cnt = 2; cnt <= edges_amount; ++cnt) {
+        dp0[cnt] = 0;
+        dp1[cnt] = 0;
+    }
+    dp1[1] = 0;
+    long long temporary = dp1[0] + dp0[0];
+    long long otvet = 1;
+    while (temporary < vertexes_amount) {
+        temporary = 1;
+        // Считаем Сумму чисел сочетаний через
+        // Треугольнмк Паскаля
+        for (long long cnt = 1; cnt <= edges_amount; ++cnt) {
+            if (otvet % 2 == 0) {
+                dp0[cnt] = dp1[cnt] + dp1[cnt - 1];
+                temporary += dp0[cnt];
+            } else {
+                dp1[cnt] = dp0[cnt] + dp0[cnt - 1];
+                temporary += dp1[cnt];
+            }
+        }
+        ++otvet;
+    }
+    return otvet;
+}
+
+int main() {
+    std::ios_base::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+    long long vertexes_amount;
+    long long edges_amount;
+    long long otvet = 1;
+    std::cin >> vertexes_amount >> edges_amount;
+    if (edges_amount > 0 && vertexes_amount > 1) {
+        otvet = Solve(edges_amount, vertexes_amount);
+    }
+    long long flag = kMax;
+    if (vertexes_amount == 1) {
+        // Значит мы уже знаем n
+        flag = 0;
+    } else if (edges_amount == 0) {
+        // Значит недостижимо
+        flag = -1;
+    }
+    std::cout << std::min(otvet, flag);
+}
