@@ -1,0 +1,59 @@
+#include <iostream>
+#include <vector>
+
+void MakeMyDynamics(std::vector<int>& weights, std::vector<int>& values,
+                    std::vector<std::vector<int>>& dp, int edges_amount) {
+    int vertexes_amount = weights.size();
+    for (int i = 1; i <= vertexes_amount; i++) {
+        for (int jj = 1; jj <= edges_amount; jj++) {
+            if (weights[i - 1] <= jj) {
+                dp[i][jj] = std::max(dp[i - 1][jj],
+                                     dp[i - 1][jj - weights[i - 1]] + values[i - 1]);
+            } else {
+                dp[i][jj] = dp[i - 1][jj];
+            }
+        }
+    }
+}
+
+void Input(std::vector<int>& weights, std::vector<int>& values) {
+    int vertexes_amount = weights.size();
+    for (int i = 0; i < vertexes_amount; i++) {
+        std::cin >> weights[i];
+    }
+
+    for (int i = 0; i < vertexes_amount; i++) {
+        std::cin >> values[i];
+    }
+}
+
+
+int main() {
+    int vertexes_amount;
+    int edges_amount;
+    std::cin >> vertexes_amount >> edges_amount;
+
+    std::vector<int> weights(vertexes_amount);
+    std::vector<int> values(vertexes_amount);
+
+    Input(weights, values);
+
+    std::vector<std::vector<int>> dp(vertexes_amount + 1, std::vector<int>(edges_amount + 1, 0));
+    int max_value = dp[vertexes_amount][edges_amount];
+    
+    MakeMyDynamics(weights, values, dp, edges_amount);
+    
+    std::vector<int> path;
+    int cnt = edges_amount;
+    for (int i = vertexes_amount; i > 0 && max_value > 0; i--) {
+        if (max_value != dp[i - 1][cnt]) {
+            path.push_back(i);
+            max_value -= values[i - 1];
+            cnt -= weights[i - 1];
+        }
+    }
+    for (int i = path.size() - 1; i >= 0; i--) {
+        std::cout << path[i] << '\n';
+    }
+    return 0;
+}
